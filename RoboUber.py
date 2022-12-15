@@ -9,6 +9,7 @@ import json
 import networld
 import taxi
 import dispatcher
+import colour
 
 # create objects for RoboUber
 
@@ -138,9 +139,7 @@ streets = [strt0,strt1,strt2,strt3,strt4,strt5,strt6,strt7,strt8,strt9,strt10,st
            strt32,strt33,strt34,strt35,strt36,strt37,strt38,strt39,strt40,strt41,strt42,strt43,strt44,strt45,strt46,strt47]
 
 # create the dict of things we want to record
-#record revenue
-revenue = 0
-outputValues = {'time': [], 'fares': {}, 'taxis': {}, 'revenue': []}
+outputValues = {'time': [], 'fares': {}, 'taxis': {}}
 
 # RoboUber itself will be run as a separate thread for performance, so that screen
 # redraws aren't interfering with model updates.
@@ -182,6 +181,7 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
    threadRunTime = runTime
    threadTime = 0
    print("Starting world")
+   print("Taxi0 Starting amount: {0} | Taxi1 Starting amount: {1} | Taxi2 Starting amount: {2} | Taxi3 Starting amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account ))
    while threadTime < threadRunTime:
 
          # exit if 'q' has been pressed
@@ -189,12 +189,23 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
             threadRunTime = 0
          else: 
             svcArea.runWorld(ticks=1, outputs=outputValues)
+            #print("Times: {0}, Fares: {1}, Taxis: {2}".format(outputValues['time'], outputValues['fares'].keys(), outputValues['taxis'].keys()))
+            #print("Fares dropped: {}".format(dispatcher0._cancellations))
+            print("Dispatcher revenue: {0}".format(dispatcher0._revenue))
+            # print("Taxi amount. {0}".format(taxi0._account))
+
+
+
             if threadTime != svcArea.simTime:
                threadTime += 1
-            time.sleep(1)
-
+            # decrease delays in the simulator from 1 to 0.1
+            time.sleep(0.1)
+            print("Taxi0 Final amount: {0} | Taxi1 Final amount: {1} | Taxi2 Final amount: {2} | Taxi3 Final amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account ))
+            print("Taxis On Duty status. 0: {0} | 1: {1} | 2: {2} | 3: {3} ".format(taxi0.onDuty,taxi1.onDuty,taxi2.onDuty,taxi3.onDuty))
 # event to manage a user exit, invoked by pressing 'q' on the keyboard
 userExit = threading.Event()
+
+
 
 roboUber = threading.Thread(target=runRoboUber,
                             name='RoboUberThread',
