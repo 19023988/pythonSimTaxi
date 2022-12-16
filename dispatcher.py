@@ -44,6 +44,7 @@ class Dispatcher:
           self._fareBoard = {}
           # serviceMap gives the dispatcher its service area
           self._map = serviceMap
+          self.cancelCount = 0
 
       #_________________________________________________________________________________________________________
       # methods to add objects to the Dispatcher's knowledge base
@@ -124,6 +125,7 @@ class Dispatcher:
              if destination in self._fareBoard[origin]:
                 if calltime in self._fareBoard[origin][destination]:
                    # get rid of it
+                   self.cancelCount += 1
                    print("Fare ({0},{1}) cancelled".format(origin[0],origin[1]))
                    # inform taxis that the fare abandoned
                    self._parent.cancelFare(origin, self._taxis[self._fareBoard[origin][destination][calltime].taxi])
