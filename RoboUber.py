@@ -10,6 +10,7 @@ import networld
 import taxi
 import dispatcher
 import colour
+import fare
 
 # create objects for RoboUber
 
@@ -181,7 +182,11 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
    threadRunTime = runTime
    threadTime = 0
    print("Starting world")
-   print("Taxi0 Starting amount: {0} | Taxi1 Starting amount: {1} | Taxi2 Starting amount: {2} | Taxi3 Starting amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account ))
+   startingTaxiAmount = "Taxi0 Starting amount: {0} | Taxi1 Starting amount: {1} | Taxi2 Starting amount: {2} | Taxi3 Starting amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account )
+   f = open("RoboUberSim.txt", "w+")
+   f.write("Average Accounts \n")
+   f.close()
+   counter = 0
    while threadTime < threadRunTime:
 
          # exit if 'q' has been pressed
@@ -191,6 +196,7 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
             svcArea.runWorld(ticks=1, outputs=outputValues)
             #print("Times: {0}, Fares: {1}, Taxis: {2}".format(outputValues['time'], outputValues['fares'].keys(), outputValues['taxis'].keys()))
             #print("Fares dropped: {}".format(dispatcher0._cancellations))
+
             print("Dispatcher revenue: {0}".format(dispatcher0._revenue))
             # print("Taxi amount. {0}".format(taxi0._account))
 
@@ -198,10 +204,39 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
 
             if threadTime != svcArea.simTime:
                threadTime += 1
-            # decrease delays in the simulator from 1 to 0.1
-            time.sleep(0.1)
-            print("Taxi0 Final amount: {0} | Taxi1 Final amount: {1} | Taxi2 Final amount: {2} | Taxi3 Final amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account ))
-            print("Taxis On Duty status. 0: {0} | 1: {1} | 2: {2} | 3: {3} ".format(taxi0.onDuty,taxi1.onDuty,taxi2.onDuty,taxi3.onDuty))
+            # decrease delays in the simulator from 1 to speed up the simulator
+            time.sleep(0.01)
+            #print("Taxi0 Final amount: {0} | Taxi1 Final amount: {1} | Taxi2 Final amount: {2} | Taxi3 Final amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account ))
+            print("Taxis On Duty status. Taxi 0: {0} | Taxi 1: {1} | Taxi 2: {2} | Taxi 3: {3} ".format(bool(taxi0.onDuty),bool(taxi1.onDuty),bool(taxi2.onDuty),bool(taxi3.onDuty)))
+
+            #print(outputValues)
+   print("--------------------------------------------------------------------------------------------------------")
+   print(colour.colour.GREEN + startingTaxiAmount + colour.colour.GREEN)
+   print("--------------------------------------------------------------------------------------------------------")
+   print("Taxi0 Final amount: {0} | Taxi1 Final amount: {1} | Taxi2 Final amount: {2} | Taxi3 Final amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account))
+   print("Dispatcher Final revenue: £{0}".format(dispatcher0._revenue))
+   print("Taxis On Duty Final status. Taxi 0: {0} | Taxi 1: {1} | Taxi 2: {2} | Taxi 3: {3} ".format(taxi0.onDuty, taxi1.onDuty, taxi2.onDuty,taxi3.onDuty))
+   print("--------------------------------------------------------------------------------------------------------"+ colour.colour.END)
+
+
+
+   totalFares = (len(outputValues['fares']))
+
+   print("Total Fares " + str(totalFares))
+   print("Number of cancelled trips: ", dispatcher0.cancelCount)
+
+   # File writer not outputting the correct values
+   f = open("RoboUberSim.txt", "a+")
+   f.write(
+       f"Taxi0 Avg amount: {0} | Taxi1 Final amount: {1} | Taxi2 Final amount: {2} | Taxi3 Final amount: {3} | ".format(
+           taxi0._account/threadTime, taxi1._account/threadTime, taxi2._account/threadTime, taxi3._account/threadTime))
+   f.write(f"\n")
+   f.write(f"Dispatcher Final revenue: £{0}".format(dispatcher0._revenue))
+   f.write(f"\n")
+   f.write(f"\n")
+   f.write(f"Amount of Fares: " + str(totalFares))
+   f.close()
+
 # event to manage a user exit, invoked by pressing 'q' on the keyboard
 userExit = threading.Event()
 
