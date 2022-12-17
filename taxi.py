@@ -332,7 +332,8 @@ class Taxi:
       # this function should build your route and fill the _path list for each new
       # journey. Below is a naive depth-first search implementation. You should be able
       # to do much better than this!
-      def _planPath(self, origin, destination, heuristic =lambda x, y: math.sqrt((x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2) ,**args):
+      def _planPath(self, origin, destination,
+                    heuristic=lambda x, y: math.sqrt((x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2), **args):
           # the list of explored paths.
           if 'explored' not in args:
               args['explored'] = {}
@@ -365,7 +366,6 @@ class Taxi:
 
               # calculate huristic for path
 
-
               checked = set()
               expanded = {heuristic(origin, destination): {origin: [origin]}}
 
@@ -390,14 +390,14 @@ class Taxi:
 
                       expansionTargets = [node for node in self._map[nextPos[0]].items() if node[0] not in checked]
                       while len(expansionTargets) > 0:
-                        outwardsTarget = expansionTargets.pop()
+                          outwardsTarget = expansionTargets.pop()
 
+                          estDistance = bottomCost - heuristic(nextPos[0], destination) + outwardsTarget[1] + heuristic(
+                              outwardsTarget[0], destination)
 
-                        estDistance = bottomCost - heuristic(nextPos[0], destination) + outwardsTarget[1] + heuristic(outwardsTarget[0], destination)
-
-                        if estDistance in expanded:
-                             expanded[estDistance][outwardsTarget[0]] = [outwardsTarget[0] + nextPos[1]]
-                        else:
+                          if estDistance in expanded:
+                              expanded[estDistance][outwardsTarget[0]] = [outwardsTarget[0] + nextPos[1]]
+                          else:
                               expanded[estDistance] = {outwardsTarget[0]: nextPos[1] + [outwardsTarget[0]]}
               return []
 
@@ -429,7 +429,22 @@ class Taxi:
           CloseEnough = CanAffordToDrive and WillArriveOnTime
           Worthwhile = PriceBetterThanCost and NotCurrentlyBooked 
           Bid = CloseEnough and Worthwhile
+
+          # allowing longest wait time to be computed
+          FareWaitTimeLength = 0
+          for i in self._availableFares.items():
+              if FareWaitTimeLength < (self._world._time - i[0][0]):
+                  FareWaitTimeLength = (self._world._time - i[0][0])
+                  eligibleToDest = TimeToDestination < self._account
+
+
           return Bid
+
+
+
+
+
+
 
 
 
