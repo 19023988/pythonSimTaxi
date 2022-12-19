@@ -12,6 +12,8 @@ import dispatcher
 import colour
 import fare
 
+
+
 # create objects for RoboUber
 
 # TODO
@@ -171,6 +173,8 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
    print("Adding a dispatcher")
    dispatcher0 = dispatcher.Dispatcher(parent=svcArea,taxis=taxis)
 
+
+
    # who should be on duty
    svcArea.addDispatcher(dispatcher0)
 
@@ -209,7 +213,7 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
             #print("Taxi0 Final amount: {0} | Taxi1 Final amount: {1} | Taxi2 Final amount: {2} | Taxi3 Final amount: {3} | ".format(taxi0._account, taxi1._account, taxi2._account, taxi3._account ))
             print("Taxis On Duty status. Taxi 0: {0} | Taxi 1: {1} | Taxi 2: {2} | Taxi 3: {3} ".format(bool(taxi0.onDuty),bool(taxi1.onDuty),bool(taxi2.onDuty),bool(taxi3.onDuty)))
 
-            #print(outputValues)
+
    print("--------------------------------------------------------------------------------------------------------")
    print(colour.colour.GREEN + startingTaxiAmount + colour.colour.GREEN)
    print("--------------------------------------------------------------------------------------------------------")
@@ -222,8 +226,30 @@ def runRoboUber(worldX,worldY,runTime,stop,junctions=None,streets=None,interpola
 
    totalFares = (len(outputValues['fares']))
 
-   print("Total Fares " + str(totalFares))
-   print("Number of cancelled trips: ", dispatcher0.cancelCount)
+   print("Total Fares ", totalFares)
+   print("Number of cancelled Fares: ", dispatcher0.cancelCount)
+   faresCollected = totalFares - dispatcher0.cancelCount
+   print("Number of Fares collected: ", faresCollected)
+   jointReturn = (dispatcher0._revenue + taxi0._account + taxi1._account + taxi2._account + taxi3._account)
+   avgTaxiReturn = (taxi0._account + taxi1._account + taxi2._account + taxi3._account) / 4
+   print("Taxi Average Return: ", avgTaxiReturn)
+   print("Joint Returns (Taxis+Dispatcher): ", jointReturn)
+   avgJointReturns = jointReturn/5
+   print("Average Joint Returns (Taxis+Dispatcher): ", avgJointReturns)
+
+   print("--------------------------------------------------------------------------------------------------------")
+   print("Taxi 0 Went off duty at: ", taxi0._offDutyTime, "with", taxi0._account)
+   print("Taxi 1 Went off duty at: ", taxi1._offDutyTime, "with", taxi1._account)
+   print("Taxi 2 Went off duty at: ", taxi2._offDutyTime, "with", taxi2._account)
+   print("Taxi 3 Went off duty at: ", taxi3._offDutyTime, "with", taxi3._account)
+   print("--------------------------------------------------------------------------------------------------------")
+
+
+
+
+
+
+
 
    # File writer not outputting the correct values
    f = open("RoboUberSim.txt", "a+")
