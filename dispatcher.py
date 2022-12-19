@@ -203,7 +203,17 @@ class Dispatcher:
           # if the world is gridlocked, a flat fare applies.
           if timeToDestination < 0:
              return 150
-          return (25 + timeToDestination) / 0.9
+          # attempt at maximising profits
+          for i in self._taxis:
+
+              allocations = [fare for fare in i._availableFares.values() if fare.allocated]
+              if len(allocations) < 2:
+                  eligible.append(i)
+
+
+          bidCost = (bidCost + timeToDestination) / 1.1
+
+          return bidCost
 
 
 
