@@ -45,6 +45,7 @@ class Dispatcher:
           # serviceMap gives the dispatcher its service area
           self._map = serviceMap
           self.cancelCount = 0
+          self.newCount = 0
 
       #_________________________________________________________________________________________________________
       # methods to add objects to the Dispatcher's knowledge base
@@ -108,7 +109,8 @@ class Dispatcher:
           # only add new fares coming from the same world
           if parent == self._parent:
              fare = FareEntry(origin,destination,time)
-             if origin in self._fareBoard:               
+             if origin in self._fareBoard:
+                self.newCount += 1
                 if destination not in self._fareBoard[origin]:
                    self._fareBoard[origin][destination] = {}
              else:
@@ -194,46 +196,84 @@ class Dispatcher:
       '''
       # TODO - improve costing
       def _costFare(self, fare):
+          bidCost = 25
+          eligible = []
           timeToDestination = self._parent.travelTime(self._parent.getNode(fare.origin[0],fare.origin[1]),
                                                       self._parent.getNode(fare.destination[0],fare.destination[1]))
           # if the world is gridlocked, a flat fare applies.
           if timeToDestination < 0:
              return 150
-          return (25+timeToDestination)/0.9
+          return (25 + timeToDestination) / 0.9
+
+
+
 
       # TODO
       # this method decides which taxi to allocate to a given fare. The algorithm here is not a fair allocation
       # scheme: taxis can (and do!) get starved for fares, simply because they happen to be far away from the
       # action. You should be able to do better than that using some form of CSP solver (this is just a suggestion,
       # other methods are also acceptable and welcome).
+
+
+        #Attempt at allocate fare
       def _allocateFare(self, origin, destination, time):
-           # a very simple approach here gives taxis at most 5 ticks to respond, which can
-           # surely be improved upon.
-          if self._parent.simTime-time > 5:
-             allocatedTaxi = -1
-             winnerNode = None
-             fareNode = self._parent.getNode(origin[0],origin[1])
-             # this does the allocation. There are a LOT of conditions to check, namely:
-             # 1) that the fare is asking for transport from a valid location;
-             # 2) that the bidding taxi is in the dispatcher's list of taxis
-             # 3) that the taxi's location is 'on-grid': somewhere in the dispatcher's map
-             # 4) that at least one valid taxi has actually bid on the fare
-             if fareNode is not None:
-                for taxiIdx in self._fareBoard[origin][destination][time].bidders:
-                    if len(self._taxis) > taxiIdx:
-                       bidderLoc = self._taxis[taxiIdx].currentLocation
-                       bidderNode = self._parent.getNode(bidderLoc[0],bidderLoc[1])
-                       if bidderNode is not None:
-                          # ultimately the naive algorithm chosen is which taxi is the closest. This is patently unfair for several
-                          # reasons, but does produce *a* winner.
-                          if winnerNode is None or self._parent.distance2Node(bidderNode,fareNode) < self._parent.distance2Node(winnerNode,fareNode):
-                             allocatedTaxi = taxiIdx
-                             winnerNode = bidderNode
-                          else:
-                             # and after all that, we still have to check that somebody won, because any of the other reasons to invalidate
-                             # the auction may have occurred.
-                             if allocatedTaxi >= 0:
-                                # but if so, allocate the taxi.
-                                self._fareBoard[origin][destination][time].taxi = allocatedTaxi     
-                                self._parent.allocateFare(origin,self._taxis[allocatedTaxi])
-     
+          allocatedTaxi = -1
+          taxis = {}
+
+          fareNode = self._parent.getNode(origin[0], origin[1])
+          # this does the allocation. There are a LOT of conditions to check, namely:
+          # 1) that the fare is asking for transport from a valid location;
+          # 2) that the bidding taxi is in the dispatcher's list of taxis
+          # 3) that the taxi's location is 'on-grid': somewhere in the dispatcher's map
+          # 4) that at least one valid taxi has actually bid on the fare
+          if self._parent.simTime - time > 5:
+
+            if fareNode is not None:
+              for taxiIdx in range(len(self._taxis)):
+                  if len(self._taxis) > taxiIdx:
+
+
+                      index = len([fare for fare in self._taxis[taxiIdx]._availableFares.values() if fare.allocated])
+
+                      bidderLoc = self._taxis[taxiIdx].currentLocation
+                      bidderNode = self._parent.getNode(bidderLoc[0], bidderLoc[1])
+                      taxis[taxiIdx] = [1, 0, taxiIdx]
+              if len(taxis) > 0:
+                  for i in taxis:
+                      currentNode = self._parent.getNode(self._taxis[i].currentLocation[0], self._taxis[i].currentLocation[1])
+                      if self._taxis[i]._passenger == None:
+                          taxis[i][0] = 1
+
+                          fareScore += 1
+                          taxis[i][1] = 100 / (fareScore)
+
+
+                      else:
+                          nodeDist = self._parent.getNode(self._taxis[i]._path[-1][0], self._taxis[i]._path[-1][1])
+                          taxis[i][0] = 1
+
+                          fareScore = self._parent.travelTime(currentNode, nodeDist)
+                          fareScore += 1
+                          hashedIndex = index * 12
+                          taxis[i][1] = fareScore / 100
+
+
+
+
+
+
+              winRoute = taxis[(list(taxis.keys())[0])][1]
+              for i in taxis:
+                  if taxis[i][0] == 1:
+                      if taxis[i][1] < winRoute:
+                          winRoute = taxis[i][1]
+                          allocatedTaxi = taxis[i][2]
+
+
+
+
+
+              if allocatedTaxi > 0:
+                  taxis[allocatedTaxi][0] = 0
+                  self._fareBoard[origin][destination][time].taxi = allocatedTaxi
+                  self._parent.allocateFare(origin, self._taxis[allocatedTaxi])
