@@ -209,7 +209,18 @@ class Dispatcher:
               allocations = [fare for fare in i._availableFares.values() if fare.allocated]
               if len(allocations) < 2:
                   eligible.append(i)
+            #more than 2 taxis = base bidCost
+          if len(eligible) > 2:
+              bidCost += 0
 
+            # 1 to 3 taxis increase cost by 5
+          if len(eligible) <= 3 and len(eligible) >= 1:
+              bidCost += 5
+
+
+            # less than 2 taxis increase cost by 8
+          if len(eligible) < 2:
+              bidCost += 8
 
           bidCost = (bidCost + timeToDestination) / 1.1
 
